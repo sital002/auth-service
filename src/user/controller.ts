@@ -54,6 +54,39 @@ async function checkAuthentication(token: string) {
   if (!payload) return false;
   return payload;
 }
+
+const loginSchema = z.object({
+  email: z
+    .email("Invalid email")
+    .max(64, "Email must be at max 64 characters long"),
+  password: z
+    .string()
+    .min(8, "Password must be 8 characters long")
+    .max(64, "Password must be at most 64 characters long"),
+});
+
+export async function signIn(req: Request, res: Response) {
+  try {
+    const result = loginSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).send(result.error);
+    const { email, password } = result.data;
+
+    const userExists = await User.findOne({ email: email });
+    if (!userExists) return res.status(404).send("User not found");
+    const validPassword = bcrypt.compareSync(password, userExists.password);
+    if (!validPassword)
+      return res.status(400).send("Invalid email or password");
+
+    const accessToken = generateToken(userExists.email);
+    return res.status(200).json({
+      access_token: accessToken,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Internal server error");
+  }
+}
+
 export async function me(req: Request, res: Response) {
   try {
     const token = req.headers["x-access-token"];

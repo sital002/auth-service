@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 
-const KEY = "kjfkldsfjskdfjksldfjskdfjlksdjksldfjljkdlsfjlkj";
+const KEY =
+  "kjfkldsfjskdfjksldfjskdfjlksdjkfdlskfsdfjsdjfklsjflkdj802340234809fljsldfjljkdlsfjlkj";
 export const generateToken = (value: string) => {
-  const token = jwt.sign(value, KEY, {});
+  const token = jwt.sign(value, KEY);
   return token;
 };
 
