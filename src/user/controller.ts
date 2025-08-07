@@ -30,7 +30,7 @@ export async function signUp(req: Request, res: Response) {
   try {
     const result = signUpSchema.safeParse(req.body);
     if (!result.success) return res.status(400).json(result.error);
-    const userExists = await User.findOne({ email: result.data.email });
+    const userExists = await User.findOne({ email: result.data.email }).lean();
     if (userExists) return res.status(400).send("User already exists");
     const hashedPassword = bcrypt.hashSync(result.data.password, salt);
 
@@ -41,7 +41,10 @@ export async function signUp(req: Request, res: Response) {
     });
 
     return res.status(201).send({
-      access_token: generateToken(user.email),
+      access_token: generateToken({
+        email: user.email,
+        id: user._id.toString(),
+      }),
     });
   } catch (err) {
     console.error(err);
@@ -71,13 +74,16 @@ export async function signIn(req: Request, res: Response) {
     if (!result.success) return res.status(400).send(result.error);
     const { email, password } = result.data;
 
-    const userExists = await User.findOne({ email: email });
+    const userExists = await User.findOne({ email: email }).lean();
     if (!userExists) return res.status(404).send("User not found");
     const validPassword = bcrypt.compareSync(password, userExists.password);
     if (!validPassword)
       return res.status(400).send("Invalid email or password");
 
-    const accessToken = generateToken(userExists.email);
+    const accessToken = generateToken({
+      email: userExists.email,
+      id: userExists._id.toString(),
+    });
     return res.status(200).json({
       access_token: accessToken,
     });
@@ -100,7 +106,9 @@ export async function me(req: Request, res: Response) {
     const payload = await checkAuthentication(token);
     console.log(payload);
     if (!payload) return res.status(400).send("User not loggedin");
-    const user = await User.findOne({ email: payload }).select("-password");
+    const user = await User.findOne({ email: payload.email }).select(
+      "-password"
+    );
     return res.status(200).send(user);
   } catch (err) {
     console.error(err);
