@@ -1,11 +1,19 @@
 import jwt from "jsonwebtoken";
 
-const KEY = "kjfkldsfjskdfjksldfjskdfjlksdjksldfjljkdlsfjlkj";
-export const generateToken = (value: string) => {
-  const token = jwt.sign(value, KEY, {});
+const KEY =
+  "kjfkldsfjskdfjksldfjskdfjlksdjkfdlskfsdfjsdjfklsjflkdj802340234809fljsldfjljkdlsfjlkj";
+
+type Payload = {
+  id: string;
+  email: string;
+};
+export const generateToken = (payload: Payload) => {
+  const token = jwt.sign(payload, KEY);
   return token;
 };
 
 export const verifyToken = (token: string) => {
-  return jwt.verify(token, KEY);
+  const payload = jwt.verify(token, KEY);
+  if (!payload) return null;
+  return payload as Payload;
 };
