@@ -104,11 +104,8 @@ export async function me(req: Request, res: Response) {
       return res.status(400).send("x-access-token must be a string");
 
     const payload = await checkAuthentication(token);
-    console.log(payload);
     if (!payload) return res.status(400).send("User not loggedin");
-    const user = await User.findOne({ email: payload.email }).select(
-      "-password"
-    );
+    const user = await User.findById(payload.id).select("-password");
     return res.status(200).send(user);
   } catch (err) {
     console.error(err);
